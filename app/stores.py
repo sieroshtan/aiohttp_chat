@@ -9,7 +9,7 @@ messages_table = sa.Table('chat_message', metadata,
     sa.Column('user_sender_id', sa.INTEGER),
     sa.Column('channel_id', sa.INTEGER),
     sa.Column('delivered', sa.BOOLEAN, default=False),
-    sa.Column('read', sa.BOOLEAN, default=False),
+    # sa.Column('read', sa.BOOLEAN, default=False),
 )
 
 
@@ -34,8 +34,9 @@ user_table = sa.Table('auth_user', metadata,
     sa.Column('date_joined', sa.Unicode(45)),
 )
 
-# message_recipient_table = sa.Table('chat_messagerecipient', metadata,
-#     sa.Column('id', sa.Integer, primary_key=True),
-#     sa.Column('message_id', sa.INTEGER, sa.ForeignKey('chat_message.id')),
-#     sa.Column('user_id', sa.INTEGER, sa.ForeignKey('auth_user.id')),
-# )
+message_status_table = sa.Table('chat_messagestatus', metadata,
+    sa.Column('id', sa.Integer, primary_key=True),
+    sa.Column('read', sa.BOOLEAN, default=False),
+    sa.Column('message_id', sa.INTEGER, sa.ForeignKey('chat_message.id')),
+    sa.Column('user_id', sa.INTEGER, sa.ForeignKey('auth_user.id')),
+)

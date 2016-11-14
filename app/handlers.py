@@ -3,10 +3,7 @@ import time
 import aiohttp
 from aiohttp import web
 from sqlalchemy import select
-from stores import messages_table, user_channel_table, user_table
-
-
-# from stores import messages_table, message_recipient_table
+from stores import messages_table, user_channel_table, user_table, message_status_table
 
 
 async def websocket_handler(request):
@@ -40,8 +37,7 @@ async def websocket_handler(request):
                                                            text=event_data['text'],
                                                            user_sender_id=current_user_id,
                                                            channel_id=channel_id,
-                                                           delivered=False,
-                                                           read=False))
+                                                           delivered=False))
 
                         current_user_name = await conn.execute(
                             select([user_table.c.username]).where(user_table.c.id == current_user_id)
@@ -69,8 +65,7 @@ async def websocket_handler(request):
                                                            text=event_data['text'],
                                                            user_sender_id=current_user_id,
                                                            channel_id=event_data['channel'],
-                                                           delivered=False,
-                                                           read=False))
+                                                           delivered=False))
 
                         channel_users = await conn.execute(
                             select([user_channel_table.c.user_id]).where(user_channel_table.c.channel_id == channel_id)
@@ -91,23 +86,36 @@ async def websocket_handler(request):
                         to_id = row[user_channel_table.c.user_id]
                         await nc.publish('channel.%s' % to_id, json.dumps(event_data).encode('utf-8'))
 
-                elif event_data['type'] == 'message.read':
-                    channel_id = event_data['channel']
-                    last_msg_id = event_data['msg_id']
+                # elif event_data['type'] == 'message.read':
+                #     channel_id = event_data['channel']
+                #     last_msg_id = event_data['msg_id']
+                #
+                #     async with db.acquire() as conn:
+                #         messages = await conn.execute(
+                #             select([messages_table])
+                #                 .where(messages_table.c.channel_id == channel_id)
+                #                 .where(messages_table.c.user_sender_id != current_user_id)
+                #                 .where(messages_table.c.id <= last_msg_id).join()
+                #         )
+                #
+                #         for row in messages:
+                #             msg_id = row[messages_table.c.id]
+                #             user_sender_id = row[messages_table.c.user_sender_id]
+                #
+                #         await conn.execute(
+                #             message_status_table.insert().values(message_id=msg_id, user_id=current_user_id, read=True))
 
-                    async with db.acquire() as conn:
-                        # messages = await conn.execute(
-                        #     select([messages_table]).where(messages_table.c.channel_id == channel_id).where(messages_table.c.user_sender_id != current_user_id)
-                        # )
-                        r = await conn.execute(
-                            messages_table.update().where(messages_table.c.channel_id == channel_id).where(
-                                messages_table.c.user_sender_id != current_user_id).where(
-                                messages_table.c.read == False).where(messages_table.c.id <= last_msg_id).values(
-                                read=True).returning(messages_table.c.id))
 
-                    event_data['msg_list'] = list(msg[0] for msg in list(r))
 
-                    await nc.publish('channel.%s' % current_user_id, json.dumps(event_data).encode('utf-8'))
+                        # r = await conn.execute(
+                        #     messages_table.update().where(messages_table.c.channel_id == channel_id).where(
+                        #         messages_table.c.user_sender_id != current_user_id).where(
+                        #         messages_table.c.read == False).where(messages_table.c.id <= last_msg_id).values(
+                        #         read=True).returning(messages_table.c.id))
+
+                    # event_data['msg_list'] = list(msg[0] for msg in list(r))
+                    #
+                    # await nc.publish('channel.%s' % current_user_id, json.dumps(event_data).encode('utf-8'))
 
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print('ws connection closed with exception %s' % ws.exception())
