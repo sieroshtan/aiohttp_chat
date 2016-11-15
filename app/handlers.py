@@ -86,36 +86,21 @@ async def websocket_handler(request):
                         to_id = row[user_channel_table.c.user_id]
                         await nc.publish('channel.%s' % to_id, json.dumps(event_data).encode('utf-8'))
 
-                # elif event_data['type'] == 'message.read':
-                #     channel_id = event_data['channel']
-                #     last_msg_id = event_data['msg_id']
-                #
-                #     async with db.acquire() as conn:
-                #         messages = await conn.execute(
-                #             select([messages_table])
-                #                 .where(messages_table.c.channel_id == channel_id)
-                #                 .where(messages_table.c.user_sender_id != current_user_id)
-                #                 .where(messages_table.c.id <= last_msg_id).join()
-                #         )
-                #
-                #         for row in messages:
-                #             msg_id = row[messages_table.c.id]
-                #             user_sender_id = row[messages_table.c.user_sender_id]
-                #
-                #         await conn.execute(
-                #             message_status_table.insert().values(message_id=msg_id, user_id=current_user_id, read=True))
+                elif event_data['type'] == 'message.read':
+                    # channel_id = event_data['channel']
+                    msg_ids = event_data['msg_ids']
 
+                    async with db.acquire() as conn:
+                        for msg_id in msg_ids:
+                            # msg_id = row[messages_table.c.id]
+                            # user_sender_id = row[messages_table.c.user_sender_id]
+                            res = await conn.execute(
+                                message_status_table.insert().values(message_id=msg_id, user_id=current_user_id, read=True))
 
+                    event_data['msg_ids'] = msg_ids
 
-                        # r = await conn.execute(
-                        #     messages_table.update().where(messages_table.c.channel_id == channel_id).where(
-                        #         messages_table.c.user_sender_id != current_user_id).where(
-                        #         messages_table.c.read == False).where(messages_table.c.id <= last_msg_id).values(
-                        #         read=True).returning(messages_table.c.id))
-
-                    # event_data['msg_list'] = list(msg[0] for msg in list(r))
-                    #
-                    # await nc.publish('channel.%s' % current_user_id, json.dumps(event_data).encode('utf-8'))
+                    await nc.publish('channel.%s' % current_user_id, json.dumps(event_data).encode('utf-8'))
+                    #TODO: push event to senders and save in db
 
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print('ws connection closed with exception %s' % ws.exception())
@@ -124,3 +109,14 @@ async def websocket_handler(request):
         print('websocket connection closed')
 
     return ws
+
+
+# unreaded messages for user
+# SELECT m.id FROM chat_message m
+# LEFT JOIN chat_messagestatus s ON m.id = s.message_id
+# RIGHT JOIN auth_user u ON m.user_sender_id = u.id
+# WHERE (s.message_id is NULL OR s.user_id != 6)
+# AND m.user_sender_id != 6
+# AND m.channel_id = 5
+# AND m.id <= 70
+# GROUP BY m.id;
