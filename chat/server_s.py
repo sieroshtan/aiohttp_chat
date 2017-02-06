@@ -12,4 +12,4 @@ app = web.Application(middlewares=[
 
 app.router.add_get('/ws', ws_handler)
 
-web.run_app(app, port='8888')
+web.run_app(app, port=8888)
