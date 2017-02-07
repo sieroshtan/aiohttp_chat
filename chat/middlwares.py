@@ -3,7 +3,7 @@ from aiopg.sa import create_engine
 
 
 #DB_CONNECT_STRING = 'postgres://alexander:1234@127.0.0.1:5432/django_chat_db'
-DB_CONNECT_STRING = 'postgres://admin:admin@127.0.0.1:5432/django_chat_db'
+DB_CONNECT_STRING = 'postgres://admin:^chi_admin$@127.0.0.1:5432/django_chat_db'
 
 async def nats_middleware(app, handler):
     async def middleware_handler(request):

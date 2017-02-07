@@ -7,9 +7,8 @@ This doc describes how we can start this awesome project
 #### Summary of set up
 * Need NATS queue from https://hub.docker.com/_/nats/
 
-* docker run -d -p 4222:4222 nats
-
-* docker run -d --name chat-db -p 5432:5432 postgres
+* sudo docker run -d --name chat-nats -p 4222:4222 nats
+* sudo docker run -d --name chat-db   -p 5432:5432 postgres
 
 
 see **create_db.sql** for init database
