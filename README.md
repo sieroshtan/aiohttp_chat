@@ -1,33 +1,16 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
-
-### What is this repository for? ###
-
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+This doc describes how we can start this awesome project
 
 ### How do I get set up? ###
 
-* Summary of set up
-Need NATS queue from https://hub.docker.com/_/nats/
+#### Summary of set up
+* Need NATS queue from https://hub.docker.com/_/nats/
 
-docker run -p 4222:4222 nats
+* sudo docker run -d --name chat-nats -p 4222:4222 nats
+* sudo docker run -d --name chat-db   -p 5432:5432 postgres
 
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
 
-### Contribution guidelines ###
+see **create_db.sql** for init database
 
-* Writing tests
-* Code review
-* Other guidelines
 
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
